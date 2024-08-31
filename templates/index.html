@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe with AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col justify-center items-center text-white">
+
+    <h1 class="text-5xl font-extrabold mb-10 drop-shadow-lg">Tic-Tac-Toe with AI</h1>
+
+    <div id="board" class="grid grid-cols-3 gap-4 mb-8">
+        <!-- The board cells -->
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="0" data-col="0"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="0" data-col="1"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="0" data-col="2"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="1" data-col="0"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="1" data-col="1"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="1" data-col="2"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="2" data-col="0"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="2" data-col="1"></div>
+        <div class="cell bg-white text-black font-bold flex justify-center items-center text-4xl cursor-pointer shadow-2xl h-28 w-28 rounded-lg transition-transform transform hover:scale-105" data-row="2" data-col="2"></div>
+    </div>
+
+    <div id="controls" class="mb-8">
+        <button id="trainButton" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-full shadow-lg transition-transform transform hover:scale-105">Train AI (1000 games)</button>
+    </div>
+
+    <div id="status" class="text-2xl font-semibold drop-shadow-lg"></div>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusDiv = document.getElementById('status');
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', async function () {
+                const row = this.getAttribute('data-row');
+                const col = this.getAttribute('data-col');
+
+                const response = await fetch('/move', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ row: row, col: col })
+                });
+
+                const data = await response.json();
+
+                if (data.result == 'Invalid move') {
+                    alert('Invalid move!');
+                } else {
+                    this.textContent = 'X';
+                    if (data.ai_row !== undefined && data.ai_col !== undefined) {
+                        const aiCell = document.querySelector(`[data-row='${data.ai_row}'][data-col='${data.ai_col}']`);
+                        aiCell.textContent = 'O';
+                    }
+
+                    if (data.result !== null) {
+                        const message = data.result == 1 ? "You win!" : data.result == -1 ? "AI wins!" : "It's a draw!";
+                        alert(message);
+                        cells.forEach(cell => cell.textContent = '');
+                    }
+                }
+            });
+        });
+
+        document.getElementById('trainButton').addEventListener('click', async () => {
+            const response = await fetch('/train', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_games: 1000 })
+            });
+
+            const data = await response.json();
+            statusDiv.textContent = data.status;
+        });
+    </script>
+</body>
+
+</html>
